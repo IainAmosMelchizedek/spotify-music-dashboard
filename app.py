@@ -47,6 +47,56 @@ app = dash.Dash(__name__)
 app.title = "Spotify Music Dashboard"
 
 # App layout
+import base64
+import io
+import pandas as pd
+import plotly.express as px
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# File paths
+DATA_FILE_PATH = "spotify_top_songs_audio_features.csv"
+
+# Function to load and preprocess data
+def load_and_preprocess_data(file_path):
+    """
+    Load the dataset and preprocess it by adding a popularity category column.
+    """
+    data = pd.read_csv(file_path)
+    data['popularity_category'] = pd.qcut(data['streams'], q=3, labels=['Low', 'Medium', 'High'])
+    return data
+
+# Function to generate heatmap image
+def generate_heatmap_image(data):
+    """
+    Generate a heatmap image for Key and Mode combinations.
+    """
+    plt.figure(figsize=(10, 6))
+    heatmap_data = pd.crosstab(data['key'], data['mode'])
+    sns.heatmap(heatmap_data, annot=True, fmt='d', cmap='Blues')
+    plt.title("Key and Mode Combinations")
+    plt.xlabel("Mode")
+    plt.ylabel("Key")
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    heatmap_image = base64.b64encode(buffer.read()).decode('utf-8')
+    plt.close()
+    return heatmap_image
+
+# Load and preprocess data
+df = load_and_preprocess_data(DATA_FILE_PATH)
+heatmap_image = generate_heatmap_image(df)
+
+# Initialize Dash app
+app = dash.Dash(__name__)
+app.title = "Spotify Music Dashboard"
+server = app.server  # Required for gunicorn
+
+# App layout
 app.layout = html.Div(
     style={'backgroundColor': '#f4f4f4', 'font-family': 'Arial'},
     children=[
@@ -145,12 +195,18 @@ def update_violin_plot(_):
     )
     fig.update_traces(meanline_visible=True)
     fig.update_layout(
-        title="Danceability by Popularity Category"
+        title="Danceability by Popularity Category",
+        annotations=[
+            dict(
+                x=cat, y=median, text=f"{median:.2f}", showarrow=False, font=dict(color="red", size=14)
+            )
+            for cat, median in zip(
+                df['popularity_category'].unique(),
+                df.groupby('popularity_category')['danceability'].median()
+            )
+        ]
     )
     return fig
-
-# Expose server for Gunicorn
-server = app.server
 
 # Run the app
 if __name__ == '__main__':
