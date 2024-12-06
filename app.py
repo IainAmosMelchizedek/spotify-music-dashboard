@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # File paths
-DATA_FILE_PATH = 'C:/music_data_dash/spotify_top_songs_audio_features.csv'
+DATA_FILE_PATH = "DATA_FILE_PATH = "spotify_top_songs_audio_features.csv"
+
+'
 
 # Function to load and preprocess data
 def load_and_preprocess_data(file_path):
