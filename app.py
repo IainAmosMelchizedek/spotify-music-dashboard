@@ -11,7 +11,6 @@ import seaborn as sns
 # File paths
 DATA_FILE_PATH = "spotify_top_songs_audio_features.csv"
 
-
 # Function to load and preprocess data
 def load_and_preprocess_data(file_path):
     """
@@ -146,16 +145,7 @@ def update_violin_plot(_):
     )
     fig.update_traces(meanline_visible=True)
     fig.update_layout(
-        title="Danceability by Popularity Category",
-        annotations=[
-            dict(
-                x=cat, y=median, text=f"{median:.2f}", showarrow=False, font=dict(color="red", size=14)
-            )
-            for cat, median in zip(
-                df['popularity_category'].unique(),
-                df.groupby('popularity_category')['danceability'].median()
-            )
-        ]
+        title="Danceability by Popularity Category"
     )
     return fig
 
